@@ -211,9 +211,9 @@
   });
   mobile.addEventListener("change", () => toggleMenu(false));
   function route(moveFocus = false) {
-    const pages = { calculator:"计算工作台", tools:"全部工具", guide:"公式手册" };
+    const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", guide:"凯利公式手册" };
     const hash = location.hash.slice(1);
-    const name = Object.hasOwn(pages, hash) ? hash : "calculator";
+    const name = Object.hasOwn(pages, hash) ? hash : "tools";
     Object.keys(pages).forEach(key => {
       id(key + "-view").hidden = key !== name;
       const link = document.querySelector('.nav-link[href="#' + key + '"]');
@@ -221,12 +221,19 @@
       else link.removeAttribute("aria-current");
     });
     id("current-page").textContent = pages[name];
-    document.title = (name === "calculator" ? "期望值与凯利公式" : pages[name]) + " · 个人工具箱";
+    document.title = pages[name] + " · 个人工具箱";
+    id("open-examples").hidden = name !== "calculator";
+    id("storage-status").textContent = "当前设备";
     toggleMenu(false);
     if (moveFocus) { window.scrollTo(0,0); id("content").focus({preventScroll:true}); }
-    if (name === "calculator" && result) { GrowthChart.render(id("plot"),result); drawSurface(); }
+    if (name === "calculator") { renderCalculations(); drawSurface(); }
+    if (name === "stress") StressTest.open();
   }
   window.addEventListener("hashchange", () => route(true));
+  document.querySelector(".skip").addEventListener("click", event => {
+    event.preventDefault();
+    id("content").focus();
+  });
 
   // Project a two-dimensional mesh onto the hero illustration.
   function drawSurface() {
@@ -268,7 +275,6 @@
   }
   restore();
   route();
-  renderCalculations();
   const observer = new ResizeObserver(entries => {
     for (const entry of entries) {
       if (entry.contentRect.width === 0) continue;

@@ -4,12 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f7fb">
-  <meta name="description" content="在个人工具箱中计算期望值、凯利仓位和投入金额，通过曲线与公式理解每一步。">
-  <title>期望值与凯利公式 · 个人工具箱</title>
+  <meta name="description" content="计算期望值、凯利仓位，或模拟停薪期间的定投资金压力，通过数字和公式理解每一步。">
+  <title>个人工具箱</title>
   <link rel="icon" href="mark.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
   <script defer src="math.js"></script>
   <script defer src="chart.js"></script>
+  <script defer src="stress-math.js"></script>
+  <script defer src="stress-chart.js"></script>
+  <script defer src="stress.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -19,11 +22,12 @@
       <a class="brand" href="#tools" aria-label="个人工具箱，全部工具"><img src="mark.png" alt="" width="40" height="40"><span>个人工具箱<small>PERSONAL TOOLKIT</small></span></a>
       <nav aria-label="主导航">
         <div class="nav-group"><p>工作空间</p>
-          <a class="nav-link" href="#tools"><i data-icon="grid"></i>全部工具</a>
-          <a class="nav-link" href="#calculator" aria-current="page"><i data-icon="panel"></i>计算工作台</a>
+          <a class="nav-link" href="#tools" aria-current="page"><i data-icon="grid"></i>全部工具</a>
+          <a class="nav-link" href="#calculator"><i data-icon="panel"></i>期望值与凯利公式</a>
+          <a class="nav-link" href="#stress"><i data-icon="wallet"></i>定投压力测试</a>
         </div>
         <div class="nav-group"><p>知识库</p>
-          <a class="nav-link" href="#guide"><i data-icon="book"></i>公式手册</a>
+          <a class="nav-link" href="#guide"><i data-icon="book"></i>凯利公式手册</a>
         </div>
       </nav>
       <div class="rail-foot"><span class="workspace-icon"><i data-icon="user"></i></span><div><strong>个人工作区</strong><small id="storage-status">当前设备</small></div></div>
@@ -35,7 +39,7 @@
         <button class="examples-btn" id="open-examples" type="button"><i data-icon="layers"></i>载入示例<i data-icon="chevron-down"></i></button>
       </header>
       <main id="content" tabindex="-1">
-        <div id="calculator-view">
+        <div id="calculator-view" hidden>
           <section class="hero">
             <canvas aria-hidden="true" id="surface"></canvas>
             <div class="hero-copy"><span class="hero-tag"><i data-icon="activity"></i>决策分析</span>
@@ -74,10 +78,54 @@
           </div>
           <section class="card breakdown"><div class="panel-head"><h2><i data-icon="braces"></i>计算拆解</h2><a class="text-btn" href="#guide"><i data-icon="book"></i>公式手册</a></div><div class="steps" id="steps"></div></section>
         </div>
-        <section id="tools-view" class="alternate" hidden>
+        <section id="tools-view" class="alternate">
           <p class="section-label">工作空间</p><h1>全部工具</h1>
+          <div class="catalog-grid">
           <a class="catalog-card" href="#calculator"><div class="catalog-art"><i data-icon="activity"></i><span>EV</span><span>f*</span></div><div class="catalog-copy"><small>决策分析</small><h2>期望值与凯利公式</h2><p>计算平均净收益、投入比例和金额，探索仓位与长期增长的关系。</p><strong>打开工作台</strong></div></a>
+          <a class="catalog-card" href="#stress"><div class="catalog-art cash-art" aria-hidden="true"><div class="cash-contours"></div><i data-icon="wallet"></i></div><div class="catalog-copy"><small>现金流规划</small><h2>定投压力测试</h2><p>同时模拟基金下跌与停薪，对比继续、暂停定投时现金能撑多久。</p><strong>打开压力测试</strong></div></a>
+          </div>
         </section>
+        <div id="stress-view" hidden>
+          <section class="hero cash-hero">
+            <div class="cash-contours" aria-hidden="true"></div>
+            <div class="hero-copy"><span class="hero-tag"><i data-icon="wallet"></i>现金流规划</span><h1>定投压力测试</h1><p>如果市场下跌时收入也暂停，手头的现金能撑几个月？</p></div>
+          </section>
+          <section class="metrics" aria-label="压力测试结果">
+            <article class="metric"><div class="metric-head"><span class="tile teal"><i data-icon="wallet"></i></span><h2>继续定投可撑</h2></div><div class="metric-num" id="stress-run-on">—</div><p id="stress-on-caption"></p></article>
+            <article class="metric"><div class="metric-head"><span class="tile violet"><i data-icon="layers"></i></span><h2>暂停定投可撑</h2></div><div class="metric-num" id="stress-run-off">—</div><p id="stress-off-caption"></p></article>
+            <article class="metric"><div class="metric-head"><span class="tile blue"><i data-icon="chart"></i></span><h2>基金账面损失</h2></div><div class="metric-num" id="stress-loss">—</div><p id="stress-fund-caption"></p></article>
+          </section>
+          <div class="work-grid stress-grid">
+            <section class="card"><div class="panel-head"><h2><i data-icon="sliders"></i>情景参数</h2><button type="button" id="stress-reset" class="text-btn"><i data-icon="reset"></i>恢复示例</button></div>
+              <form id="stress-form" novalidate autocomplete="off">
+                <div class="two-fields">
+                  <div class="field"><label for="s-cash">期初可用现金</label><div class="input-wrap"><input id="s-cash" name="cash" inputmode="decimal" value="24000" aria-describedby="s-error-cash"><span>元</span></div><small class="field-error" id="s-error-cash"></small></div>
+                  <div class="field"><label for="s-fund">现有基金市值</label><div class="input-wrap"><input id="s-fund" name="fund" inputmode="decimal" value="40000" aria-describedby="s-error-fund"><span>元</span></div><small class="field-error" id="s-error-fund"></small></div>
+                </div>
+                <div class="field"><label for="s-living">每月必要生活支出</label><div class="input-wrap"><input id="s-living" name="living" inputmode="decimal" value="4000" aria-describedby="s-error-living"><span>元</span></div><small class="field-error" id="s-error-living"></small></div>
+                <div class="stress-controls">
+                  <div class="field"><div class="field-line"><label for="s-drop">期初基金跌幅</label><div class="input-wrap"><input id="s-drop" name="drop" inputmode="decimal" value="40" aria-describedby="s-error-drop"><span>%</span></div></div><input type="range" class="stress-range" aria-label="滑动调整基金跌幅" data-field="drop" min="0" max="100" step="0.01" value="40"><small class="field-error" id="s-error-drop"></small></div>
+                  <div class="field"><div class="field-line"><label for="s-months">停薪时间</label><div class="input-wrap"><input id="s-months" name="months" inputmode="numeric" value="6" aria-describedby="s-error-months"><span>个月</span></div></div><input type="range" class="stress-range" aria-label="滑动调整停薪时间" data-field="months" min="0" max="120" step="1" value="6"><small class="field-error" id="s-error-months"></small></div>
+                  <div class="field"><div class="field-line"><label for="s-contribution">每月定投额</label><div class="input-wrap"><input id="s-contribution" name="contribution" inputmode="decimal" value="2000" aria-describedby="s-error-contribution"><span>元</span></div></div><input type="range" class="stress-range" aria-label="滑动调整每月定投额" data-field="contribution" min="0" max="10000" step="1" value="2000"><small class="field-error" id="s-error-contribution"></small></div>
+                </div>
+              </form>
+            </section>
+            <section class="card stress-forecast"><div class="panel-head"><h2><i data-icon="chart"></i>停薪期间的现金余额</h2></div>
+              <div class="cash-legend"><span>继续定投</span><span>暂停定投</span></div>
+              <div id="stress-plot" aria-label="两种方案的逐月现金余额"></div>
+              <div class="stress-outcome"><h3 id="stress-end-title">停薪期末</h3><dl><div><dt>继续定投</dt><dd id="s-end-on">—</dd></div><div><dt>暂停定投</dt><dd id="s-end-off">—</dd></div></dl></div>
+              <div class="chart-insight"><i data-icon="bulb"></i><p id="stress-insight" role="status"></p></div>
+            </section>
+          </div>
+          <section class="card breakdown"><div class="panel-head"><h2><i data-icon="braces"></i>每一步怎么算</h2></div>
+            <p class="stress-assumptions">设基金在期初一次下跌。停薪期间收入为零，生活支出和定投额保持固定，不卖基金补现金，也不计利息和手续费。</p>
+            <ol id="stress-steps" class="stress-steps"></ol>
+          </section>
+          <details class="card stress-ledger" id="stress-ledger"><summary>逐月收支明细</summary>
+            <p class="stress-assumptions">余额最低显示为 0。累计缺口表示截至当月仍需补入多少现金，才能付清原计划的所有支出。</p>
+            <table><thead><tr><th scope="col">月份</th><th scope="col">继续定投</th><th scope="col">暂停定投</th></tr></thead><tbody id="stress-rows"></tbody></table>
+          </details>
+        </div>
         <section id="guide-view" class="alternate" hidden>
           <p class="section-label">知识库</p><h1>公式手册</h1><p class="intro">期望值回答“平均能赚多少”，凯利公式回答“每轮投入多少本金”。</p>
           <article class="guide-part"><h2>从两种结果算出期望值</h2><p>假设每投入 1 元，获胜概率为 p，获胜净赚 b 元，失败净亏 a 元。把每个结果乘以它发生的概率，再相加。</p><div class="equation">EV = p × b − (1 − p) × a</div><p>例如胜率为 60%，赢时赚 1 元，输时亏 1 元。若进行 100 轮，每轮固定投入 1 元，平均总净收益为 60 − 40 = 20 元，每轮期望值为 0.20 元。单轮结果仍然只会是赚 1 元或亏 1 元。</p><p>令 EV = 0，得到盈亏平衡胜率 p₀ = a ÷ (a + b)。</p></article>
