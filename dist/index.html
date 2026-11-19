@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7fb">
+  <meta name="description" content="在个人工具箱中计算期望值、凯利仓位和投入金额，通过曲线与公式理解每一步。">
+  <title>期望值与凯利公式 · 个人工具箱</title>
+  <link rel="icon" href="mark.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="math.js"></script>
+  <script defer src="chart.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#content">跳到主要内容</a>
+  <div class="shell">
+    <aside class="rail" id="rail">
+      <a class="brand" href="#tools" aria-label="个人工具箱，全部工具"><img src="mark.png" alt="" width="40" height="40"><span>个人工具箱<small>PERSONAL TOOLKIT</small></span></a>
+      <nav aria-label="主导航">
+        <div class="nav-group"><p>工作空间</p>
+          <a class="nav-link" href="#tools"><i data-icon="grid"></i>全部工具</a>
+          <a class="nav-link" href="#calculator" aria-current="page"><i data-icon="panel"></i>计算工作台</a>
+        </div>
+        <div class="nav-group"><p>知识库</p>
+          <a class="nav-link" href="#guide"><i data-icon="book"></i>公式手册</a>
+        </div>
+      </nav>
+      <div class="rail-foot"><span class="workspace-icon"><i data-icon="user"></i></span><div><strong>个人工作区</strong><small id="storage-status">当前设备</small></div></div>
+    </aside>
+    <button type="button" class="scrim" aria-label="关闭导航" hidden></button>
+    <div class="main-shell">
+      <header class="topbar">
+        <div class="crumb"><button class="icon-button menu" id="menu" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="rail"><i data-icon="menu"></i></button><a href="#tools"><i data-icon="box"></i>工具箱</a><i data-icon="chevron-right"></i><strong id="current-page">计算工作台</strong></div>
+        <button class="examples-btn" id="open-examples" type="button"><i data-icon="layers"></i>载入示例<i data-icon="chevron-down"></i></button>
+      </header>
+      <main id="content" tabindex="-1">
+        <div id="calculator-view">
+          <section class="hero">
+            <canvas aria-hidden="true" id="surface"></canvas>
+            <div class="hero-copy"><span class="hero-tag"><i data-icon="activity"></i>决策分析</span>
+              <h1>期望值与凯利公式</h1><p>衡量每次投入的平均收益，理解长期增长的最佳仓位。</p>
+            </div>
+          </section>
+          <section class="metrics" aria-label="实时计算结果">
+            <article class="metric"><div class="metric-head"><span class="tile teal"><i data-icon="trend"></i></span><h2>单位期望值</h2><span id="edge-badge" class="badge positive">正期望</span></div><div class="metric-num" id="metric-ev">—</div><p>每投入 1 元的平均净收益</p></article>
+            <article class="metric"><div class="metric-head"><span class="tile violet"><i data-icon="pie"></i></span><h2>凯利仓位</h2></div><div class="metric-num" id="metric-allocation">—</div><p id="allocation-caption">当前策略的资金投入比例</p></article>
+            <article class="metric"><div class="metric-head"><span class="tile blue"><i data-icon="wallet"></i></span><h2>投入金额</h2></div><div class="metric-num" id="metric-stake">—</div><p id="stake-caption">按当前可用本金计算</p></article>
+          </section>
+          <div class="work-grid">
+            <section class="card input-card" aria-labelledby="parameter-title">
+              <div class="panel-head"><h2 id="parameter-title"><i data-icon="sliders"></i>参数设置</h2><button type="button" id="reset" class="text-btn"><i data-icon="reset"></i>重置</button></div>
+              <form id="parameters" novalidate autocomplete="off">
+                <div class="field probability-field"><div class="field-line"><label for="winProbability">获胜概率 <em>p</em></label><div class="input-wrap"><input id="winProbability" name="winProbability" inputmode="decimal" value="60" aria-describedby="err-winProbability"><span>%</span></div></div><input type="range" id="probability-slider" min="0" max="100" step="1" value="60" aria-label="滑动调整获胜概率，每格一个百分点"><small class="field-error" id="err-winProbability"></small></div>
+                <div class="two-fields">
+                  <div class="field"><label for="winAmount">赢时净赚 <em>b</em></label><div class="input-wrap"><input id="winAmount" name="winAmount" inputmode="decimal" value="1" aria-describedby="payoff-hint err-winAmount"><span>元</span></div><small class="field-error" id="err-winAmount"></small></div>
+                  <div class="field"><label for="lossAmount">输时净亏 <em>a</em></label><div class="input-wrap"><input id="lossAmount" name="lossAmount" inputmode="decimal" value="1" aria-describedby="payoff-hint err-lossAmount"><span>元</span></div><small class="field-error" id="err-lossAmount"></small></div>
+                </div>
+                <p class="field-hint" id="payoff-hint">按每投入 1 元填写，净收益不含返还的本金。</p>
+                <div class="field"><label for="bankroll">可用本金 <em>B</em></label><div class="input-wrap"><input id="bankroll" name="bankroll" inputmode="decimal" value="10000" aria-describedby="err-bankroll"><span>元</span></div><small class="field-error" id="err-bankroll"></small></div>
+                <fieldset><legend>凯利策略</legend><div class="segments">
+                  <label><input type="radio" name="fraction" value="1" checked><span>全凯利</span></label>
+                  <label><input type="radio" name="fraction" value="0.5"><span>半凯利</span></label>
+                  <label><input type="radio" name="fraction" value="0.25"><span>¼ 凯利</span></label>
+                </div></fieldset>
+              </form>
+            </section>
+            <section class="card chart-card" aria-labelledby="chart-title">
+              <div class="panel-head"><h2 id="chart-title"><i data-icon="chart"></i>仓位增长曲线</h2><span class="chart-key"><span></span>预期对数增长率</span></div>
+              <p class="chart-desc">调整投入仓位，观察每轮资金的长期增长潜力。</p>
+              <div id="plot" class="plot" tabindex="0" role="group" aria-label="仓位增长曲线，用左右方向键查看不同仓位"></div>
+              <div class="chart-insight"><i data-icon="bulb"></i><p id="insight">输入参数后查看曲线。</p></div>
+            </section>
+          </div>
+          <section class="card breakdown"><div class="panel-head"><h2><i data-icon="braces"></i>计算拆解</h2><a class="text-btn" href="#guide"><i data-icon="book"></i>公式手册</a></div><div class="steps" id="steps"></div></section>
+        </div>
+        <section id="tools-view" class="alternate" hidden>
+          <p class="section-label">工作空间</p><h1>全部工具</h1>
+          <a class="catalog-card" href="#calculator"><div class="catalog-art"><i data-icon="activity"></i><span>EV</span><span>f*</span></div><div class="catalog-copy"><small>决策分析</small><h2>期望值与凯利公式</h2><p>计算平均净收益、投入比例和金额，探索仓位与长期增长的关系。</p><strong>打开工作台</strong></div></a>
+        </section>
+        <section id="guide-view" class="alternate" hidden>
+          <p class="section-label">知识库</p><h1>公式手册</h1><p class="intro">期望值回答“平均能赚多少”，凯利公式回答“每轮投入多少本金”。</p>
+          <article class="guide-part"><h2>从两种结果算出期望值</h2><p>假设每投入 1 元，获胜概率为 p，获胜净赚 b 元，失败净亏 a 元。把每个结果乘以它发生的概率，再相加。</p><div class="equation">EV = p × b − (1 − p) × a</div><p>例如胜率为 60%，赢时赚 1 元，输时亏 1 元。若进行 100 轮，每轮固定投入 1 元，平均总净收益为 60 − 40 = 20 元，每轮期望值为 0.20 元。单轮结果仍然只会是赚 1 元或亏 1 元。</p><p>令 EV = 0，得到盈亏平衡胜率 p₀ = a ÷ (a + b)。</p></article>
+          <article class="guide-part"><h2>为什么凯利公式使用对数</h2><p>每轮拿当时本金的比例 f 参与。赢后资金变为原来的 1 + fb 倍，输后变为 1 − fa 倍。多轮资金按乘法累积，取对数后，各轮增长就能相加。</p><div class="equation">G(f) = p ln(1 + fb) + (1 − p) ln(1 − fa)</div><p>在胜率和盈亏条件稳定、各轮独立的模型里，令 G 对 f 的导数为零，即可找到长期对数增长率最高的仓位。</p><div class="equation">f* = [p × b − (1 − p) × a] ÷ (a × b)</div><p>本工具只允许用自有资金投入，先把 f* 限制在 0 到 1 之间。全凯利使用这一比例，半凯利与四分之一凯利分别使用它的 ½ 和 ¼。投入金额向下取到分。</p></article>
+          <article class="guide-part"><h2>如何读懂曲线</h2><p>横轴表示拿出多少本金，纵轴表示每轮的预期对数增长率 G(f)。峰值对应全凯利仓位。增加仓位可能使增长率跌到零以下，即使每投入 1 元的期望净收益仍为正。</p><p>胜率和收益都由你估计，结果也会随它们改变。满仓且可能损失全部本金时，资金归零会使对数增长率为负无穷。</p><a class="source" href="https://theory.stanford.edu/~blynn/pr/kelly.html" target="_blank" rel="noopener noreferrer">阅读 Ben Lynn 的凯利推导（英文）<i data-icon="external"></i></a></article>
+          <a href="#calculator" class="primary-link">返回计算工作台</a>
+        </section>
+      </main>
+    </div>
+  </div>
+  <dialog id="examples" aria-labelledby="example-title"><div class="dialog-head"><h2 id="example-title">载入示例</h2><button type="button" class="icon-button" id="close-examples" aria-label="关闭示例"><i data-icon="x"></i></button></div><p>选择场景，观察胜率与盈亏如何影响仓位。</p><div id="example-list"></div></dialog>
+  <p class="sr-only" id="announcer" role="status" aria-live="polite"></p>
+</body>
+</html>
