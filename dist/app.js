@@ -1,6 +1,8 @@
 (() => {
   "use strict";
   const paths = {
+    brain: '<path d="M12 5.2a3 3 0 0 0-5.7-1A3.4 3.4 0 0 0 3.6 9a4.1 4.1 0 0 0-.1 7 3.5 3.5 0 0 0 3.4 4A2.8 2.8 0 0 0 12 18V5.2Zm0 0a3 3 0 0 1 5.7-1A3.4 3.4 0 0 1 20.4 9a4.1 4.1 0 0 1 .1 7 3.5 3.5 0 0 1-3.4 4A2.8 2.8 0 0 1 12 18"/><path d="M5.5 9.5c2 .2 3 1.3 3 3M7 17c.1-1.6 1.1-2.5 2.5-3M18.5 9.5c-2 .2-3 1.3-3 3M17 17c-.1-1.6-1.1-2.5-2.5-3"/>',
+    path: '<circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 6H16a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h8.5"/>',
     grid: '<rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/>',
     panel: '<rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 9h18M10 9v12"/>',
     book: '<path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Zm0 0v14"/>',
@@ -211,9 +213,10 @@
   });
   mobile.addEventListener("change", () => toggleMenu(false));
   function route(moveFocus = false) {
-    const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", guide:"凯利公式手册" };
+    const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", brain:"大脑功能与状态", guide:"凯利公式手册" };
     const hash = location.hash.slice(1);
     const name = Object.hasOwn(pages, hash) ? hash : "tools";
+    document.body.classList.toggle("brain-active", name === "brain");
     Object.keys(pages).forEach(key => {
       id(key + "-view").hidden = key !== name;
       const link = document.querySelector('.nav-link[href="#' + key + '"]');
@@ -228,6 +231,10 @@
     if (moveFocus) { window.scrollTo(0,0); id("content").focus({preventScroll:true}); }
     if (name === "calculator") { renderCalculations(); drawSurface(); }
     if (name === "stress") StressTest.open();
+    if (name === "brain") {
+      document.title = "大脑功能架构与状态诊断器 · 个人工具箱";
+      BrainTool.open();
+    } else if (window.BrainTool) BrainTool.close();
   }
   window.addEventListener("hashchange", () => route(true));
   document.querySelector(".skip").addEventListener("click", event => {

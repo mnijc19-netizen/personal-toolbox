@@ -4,15 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f7fb">
-  <meta name="description" content="计算期望值、凯利仓位，或模拟停薪期间的定投资金压力，通过数字和公式理解每一步。">
+  <meta name="description" content="个人工具箱，包含期望值与凯利公式、定投压力测试，以及交互式大脑图谱、状态排查与场景沙盘。">
   <title>个人工具箱</title>
   <link rel="icon" href="mark.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="brain.css">
   <script defer src="math.js"></script>
   <script defer src="chart.js"></script>
   <script defer src="stress-math.js"></script>
   <script defer src="stress-chart.js"></script>
   <script defer src="stress.js"></script>
+  <script defer src="brain-data.js"></script>
+  <script defer src="brain-map.js"></script>
+  <script defer src="brain.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -25,6 +29,7 @@
           <a class="nav-link" href="#tools" aria-current="page"><i data-icon="grid"></i>全部工具</a>
           <a class="nav-link" href="#calculator"><i data-icon="panel"></i>期望值与凯利公式</a>
           <a class="nav-link" href="#stress"><i data-icon="wallet"></i>定投压力测试</a>
+          <a class="nav-link" href="#brain"><i data-icon="brain"></i>大脑功能与状态</a>
         </div>
         <div class="nav-group"><p>知识库</p>
           <a class="nav-link" href="#guide"><i data-icon="book"></i>凯利公式手册</a>
@@ -83,7 +88,37 @@
           <div class="catalog-grid">
           <a class="catalog-card" href="#calculator"><div class="catalog-art"><i data-icon="activity"></i><span>EV</span><span>f*</span></div><div class="catalog-copy"><small>决策分析</small><h2>期望值与凯利公式</h2><p>计算平均净收益、投入比例和金额，探索仓位与长期增长的关系。</p><strong>打开工作台</strong></div></a>
           <a class="catalog-card" href="#stress"><div class="catalog-art cash-art" aria-hidden="true"><div class="cash-contours"></div><i data-icon="wallet"></i></div><div class="catalog-copy"><small>现金流规划</small><h2>定投压力测试</h2><p>同时模拟基金下跌与停薪，对比继续、暂停定投时现金能撑多久。</p><strong>打开压力测试</strong></div></a>
+          <a class="catalog-card" href="#brain"><div class="catalog-art brain-art" aria-hidden="true"><i data-icon="brain"></i></div><div class="catalog-copy"><small>认知科学</small><h2>大脑功能架构与状态诊断器</h2><p>点选脑区、排查日常状态，观察加入一次停顿后，场景中的选择如何改变。</p><strong>打开交互脑图</strong></div></a>
           </div>
+        </section>
+        <section id="brain-view" hidden>
+          <header class="brain-heading"><p lang="en">Cognitive Architecture &amp; Brain State Simulator</p><h1>大脑功能架构与状态诊断器</h1><p>从一个脑区、一种日常感受，或一个具体场景开始探索。</p></header>
+          <nav class="brain-modes" aria-label="切换探索模式">
+            <button type="button" data-brain-mode="map" aria-pressed="true"><i data-icon="brain"></i>交互脑图</button>
+            <button type="button" data-brain-mode="check" aria-pressed="false"><i data-icon="sliders"></i>状态排查</button>
+            <button type="button" data-brain-mode="sandbox" aria-pressed="false"><i data-icon="path"></i>场景沙盘</button>
+          </nav>
+          <section id="brain-check-tools" class="b-panel b-tools" hidden><h2>你现在遇到了什么？</h2><p>可多选。高亮表示可能参与的脑区；仅凭感受无法确认具体的神经活动或物质水平。</p><div id="brain-states" class="b-pills" role="group" aria-label="选择生活状态"></div>
+            <div id="brain-quick" hidden><div><strong>现在可以做</strong><p id="brain-quick-action"></p></div><button type="button" id="brain-go-actions">查看全部建议</button></div>
+          </section>
+          <section id="brain-sandbox-tools" class="b-panel b-tools" hidden><h2>选择一个场景</h2><p>熟悉的线索可能很快唤起习惯反应。比较两条路径，看看增加一个操作步骤，怎样给重新考虑目标留下时间。</p><div id="brain-scenarios" class="b-pills" role="group" aria-label="生活场景"></div><div id="brain-scene-controls"></div></section>
+          <div class="b-board">
+            <section class="b-panel b-atlas" aria-labelledby="brain-atlas-title">
+              <div class="b-panel-heading"><h2 id="brain-atlas-title"><i data-icon="layers"></i>分层脑图</h2><span>侧视投影</span></div>
+              <div id="brain-layers" class="b-layer-bar" role="group" aria-label="解剖分层"></div>
+              <div id="brain-map" aria-label="交互大脑示意图"></div>
+              <div class="b-state-key" aria-label="排查图例"><span>当前查看</span><span>其他可能参与的脑区</span></div>
+              <div class="b-netrow"><h3>网络叠加</h3><div id="brain-networks" class="b-pills" role="group" aria-label="脑网络叠加"></div></div>
+              <div id="brain-network-note" hidden></div>
+              <details class="b-index"><summary>脑区索引 <small>11 个区域</small></summary><div id="brain-region-index" class="b-pills" role="group" aria-label="按名称选择脑区"></div></details>
+            </section>
+            <aside class="b-aside">
+              <section id="brain-scene-results" class="b-panel b-report" hidden></section>
+              <details class="b-panel b-detail" id="brain-detail" open><summary><span class="b-summary-text"><small>脑区档案</small><strong id="brain-detail-name">前额叶皮层</strong></span><i data-icon="chevron-down"></i></summary><div id="brain-detail-body"></div></details>
+            </aside>
+          </div>
+          <section id="brain-check-results" class="b-panel b-report" aria-label="已选状态的行动建议" tabindex="-1" hidden></section>
+          <details class="b-panel b-reading"><summary>这张图应当怎样读？</summary><p>三层分别展示皮层、深部结构与脑干／小脑，方便在侧视图中定位。这些结构共同演化、双向协作。网络节点投影在同一平面上，实际分布在多个脑区。</p><p>沙盘通过分步动画放慢决策过程。移开手机或延迟回复会改变线索、时间和可选行动；线条和网络标签是教学示意，不能测量个人的脑信号或“算力”。</p><a href="https://doi.org/10.3389/fpsyt.2022.802606" target="_blank" rel="noopener noreferrer">了解脑区协作与“三层脑”模型的局限</a></details>
         </section>
         <div id="stress-view" hidden>
           <section class="hero cash-hero">
