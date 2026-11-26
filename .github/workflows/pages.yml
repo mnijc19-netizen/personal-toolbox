@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Verify toolbox calculations
         run: node --test
+      - name: Version scripts and styles for browser caches
+        run: node scripts/version-assets.cjs
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

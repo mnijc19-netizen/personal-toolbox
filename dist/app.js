@@ -51,7 +51,7 @@
     try {
       const saved = JSON.parse(localStorage.getItem(stateKey));
       if (saved && Object.keys(defaults).every(k => typeof saved[k] === "string") &&
-          Object.hasOwn(strategies, saved.fraction) && ToolboxMath.calculate(saved).ok) setFields(saved);
+          Object.prototype.hasOwnProperty.call(strategies, saved.fraction) && ToolboxMath.calculate(saved).ok) setFields(saved);
     } catch { /* 初次使用或浏览器禁用存储时使用当前表单。 */ }
   }
   function groupDigits(value) {
@@ -222,7 +222,7 @@
     id("dose-timer-mark").hidden = !window.DoseActions.hasActive();
   }
   function openDoseMode(mode, moveFocus = false) {
-    if (!Object.hasOwn(dosePanels,mode)) return;
+    if (!Object.prototype.hasOwnProperty.call(dosePanels, mode)) return;
     doseMode = mode;
     for (const button of id("dose-modes").querySelectorAll("button")) {
       const active = button.dataset.doseMode === mode;
@@ -236,26 +236,38 @@
     }
     updateDoseTimerMark();
   }
-  id("dose-modes").addEventListener("click", event => {
+  const doseView = id("dose-view");
+  id("dose-modes")?.addEventListener("click", event => {
     const button = event.target.closest("[data-dose-mode]");
     if (button) openDoseMode(button.dataset.doseMode);
   });
-  id("dose-view").addEventListener("dose-mode", event => {
+  doseView?.addEventListener("dose-mode", event => {
     const {mode,goal} = event.detail;
     openDoseMode(mode, true);
     if (mode === "actions" && goal) id("dose-actions-panel").dispatchEvent(new CustomEvent("dose-goal", {detail:goal}));
   });
-  id("dose-view").addEventListener("dose-timer-change", updateDoseTimerMark);
-  window.addEventListener("storage", () => { if (!id("dose-view").hidden) updateDoseTimerMark(); });
+  doseView?.addEventListener("dose-timer-change", updateDoseTimerMark);
+  if (doseView) window.addEventListener("storage", () => { if (!doseView.hidden) updateDoseTimerMark(); });
   function route(moveFocus = false) {
     const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", brain:"大脑功能与状态", dose:"DOSE 奖赏状态", guide:"凯利公式手册" };
-    const hash = location.hash.slice(1);
-    const name = Object.hasOwn(pages, hash) ? hash : "tools";
+    const url = new URL(location.href);
+    const requested = url.hash.slice(1) || url.searchParams.get("tool");
+    const known = Object.prototype.hasOwnProperty.call(pages, requested);
+    const view = known && id(requested + "-view");
+    // An older cached document can load this router before it contains the requested tool.
+    if (known && !view && !url.searchParams.has("toolbox-refresh")) {
+      url.searchParams.set("toolbox-refresh", "1");
+      location.replace(url.href);
+      return;
+    }
+    const name = view ? requested : "tools";
     document.body.classList.toggle("brain-active", name === "brain" || name === "dose");
     document.body.classList.toggle("dose-active", name === "dose");
     Object.keys(pages).forEach(key => {
-      id(key + "-view").hidden = key !== name;
+      const panel = id(key + "-view");
+      if (panel) panel.hidden = key !== name;
       const link = document.querySelector('.nav-link[href="#' + key + '"]');
+      if (!link) return;
       if (key === name) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
