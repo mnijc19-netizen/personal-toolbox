@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css?v=f66bc61a6b50a432">
   <link rel="stylesheet" href="brain.css?v=eb826298adb6b4b9">
   <link rel="stylesheet" href="dose.css?v=9fa6d2d5baa1fa87">
+  <link rel="stylesheet" href="sla.css?v=d59722fc93fba8e1">
   <script defer src="math.js?v=9d4cd4dd941c4388"></script>
   <script defer src="chart.js?v=756a2d08338b5908"></script>
   <script defer src="stress-math.js?v=03909b8366f72d5d"></script>
@@ -21,7 +22,9 @@
   <script defer src="dose-state.js?v=a5490b56d91bc303"></script>
   <script defer src="dose-friction.js?v=516e81dc55ae8e6c"></script>
   <script defer src="dose-actions.js?v=181a63d6353c4be4"></script>
-  <script defer src="app.js?v=ca1a07eb67b82558"></script>
+  <script defer src="sla-data.js?v=98ce6ebfc056fe91"></script>
+  <script defer src="sla.js?v=0c04363a2c531f12"></script>
+  <script defer src="app.js?v=565cf7d654692590"></script>
 </head>
 <body>
   <a class="skip" href="#content">跳到主要内容</a>
@@ -29,7 +32,7 @@
     <aside class="rail" id="rail">
       <a class="brand" href="#tools" aria-label="个人工具箱，全部工具"><img src="mark.png" alt="" width="40" height="40"><span>个人工具箱<small>PERSONAL TOOLKIT</small></span></a>
       <nav aria-label="主导航">
-        <div class="nav-group"><p>工作空间</p>
+        <div class="nav-group"><p>决策与计算区</p>
           <a class="nav-link" href="#tools" aria-current="page"><i data-icon="grid"></i>全部工具</a>
           <a class="nav-link" href="#calculator"><i data-icon="panel"></i>期望值与凯利公式</a>
           <a class="nav-link" href="#stress"><i data-icon="wallet"></i>定投压力测试</a>
@@ -37,6 +40,7 @@
           <a class="nav-link" href="#dose"><i data-icon="orbit"></i>DOSE 奖赏状态</a>
         </div>
         <div class="nav-group"><p>知识库</p>
+          <a class="nav-link" href="#memory" aria-label="记忆强化 / 知识图谱区"><i data-icon="layers"></i>记忆强化与图谱</a>
           <a class="nav-link" href="#guide"><i data-icon="book"></i>凯利公式手册</a>
         </div>
       </nav>
@@ -96,6 +100,47 @@
           <a class="catalog-card" href="#brain"><div class="catalog-art brain-art" aria-hidden="true"><i data-icon="brain"></i></div><div class="catalog-copy"><small>认知科学</small><h2>大脑功能架构与状态诊断器</h2><p>点选脑区、排查日常状态，观察加入一次停顿后，场景中的选择如何改变。</p><strong>打开交互脑图</strong></div></a>
           <a class="catalog-card" href="#dose"><div class="catalog-art dose-art" aria-hidden="true"><i data-icon="orbit"></i><span>DOSE</span></div><div class="catalog-copy"><small>行为决策</small><h2>DOSE 奖赏状态诊断与反成瘾决策器</h2><p>对照渴望与满足，给冲动加一道阻力，选一个替代行动开始计时。</p><strong>打开决策器</strong></div></a>
           </div>
+          <a href="#memory" class="memory-entry"><i data-icon="layers"></i><span><strong>记忆强化 / 知识图谱区</strong><small>按页码打开主动回忆卡片</small></span><i data-icon="chevron-right"></i></a>
+        </section>
+        <section id="memory-view" class="memory-space" hidden>
+          <header class="memory-header"><p class="memory-kicker">轨道 B · 主动提取与记忆强化</p><h1>记忆强化 / 知识图谱区</h1><p>选一张页码卡，在揭晓前先说出自己的答案。</p></header>
+          <nav class="memory-grid" aria-label="知识图谱页码卡">
+            <a class="memory-sheet memory-reward" href="#memory-p1"><span class="memory-sheet-top"><b>P1</b><i data-icon="orbit"></i></span><h2>DOSE 奖赏信使与高认知摩擦</h2><p>打卡很勤，却记不住。下一轮练习可以改变什么？</p><span class="memory-sheet-action">打开页卡 <i data-icon="chevron-right"></i></span></a>
+            <a class="memory-sheet memory-neuro" href="#memory-p3"><span class="memory-sheet-top"><b>P3</b><i data-icon="brain"></i></span><h2>大脑三层架构与神经养护边界</h2><p>从记得一条规则，到在对话中自然用出来。</p><span class="memory-sheet-action">打开页卡 <i data-icon="chevron-right"></i></span></a>
+            <a class="memory-sheet memory-language" href="#sla"><span class="memory-sheet-top"><b data-sla-page></b><i data-icon="activity"></i></span><h2>极致高效二语习得闭环</h2><p>走一遍习得闭环，用盲测找出今天最该调整的练习。</p><span class="memory-sheet-action">进入闭环 <i data-icon="chevron-right"></i></span></a>
+          </nav>
+          <details class="memory-config"><summary>编辑页码</summary><form id="memory-page-form"><label for="memory-page-label">二语习得闭环的页码</label><input id="memory-page-label" required maxlength="20" autocomplete="off" value="P_NEW"><button type="submit">保存页码</button><small role="status" id="memory-page-status"></small></form></details>
+        </section>
+        <section id="sla-view" class="memory-space" hidden>
+          <a class="memory-back" href="#memory"><span aria-hidden="true">←</span> 记忆强化 / 知识图谱区</a>
+          <header class="sla-hero">
+            <div class="sla-hero-copy"><p class="memory-kicker"><b data-sla-page></b> 轨道 B · 主动提取与记忆强化</p><h1>极致高效二语习得闭环</h1><p class="sla-english" lang="en">High-Efficiency SLA Closed-Loop</p><div id="sla-shortcuts" aria-label="快速练习" role="group"><button type="button" data-jump="sla-traps-title">10 秒盲测 ↓</button><button type="button" data-jump="sla-skills-title">听说读写 ↓</button></div></div>
+            <svg class="sla-wave" role="presentation" aria-hidden="true" viewBox="0 0 340 158" fill="none">
+              <defs><pattern id="sla-grid" width="19" height="19" patternUnits="userSpaceOnUse"><path d="M19 0H0V19" stroke="#668797" opacity=".24"/></pattern><linearGradient id="sla-spectrum"><stop stop-color="#91efdb"/><stop offset=".48" stop-color="#7fcfc4"/><stop offset="1" stop-color="#ac9bdb"/></linearGradient></defs>
+              <rect x="1" y="1" width="338" height="156" rx="10" fill="url(#sla-grid)"/>
+              <path d="M4 18V5h14m304 0h14v13M4 140v13h14m304 0h14v-13" stroke="#5c807d"/><path d="M8 79h324" stroke="#699a9b" stroke-dasharray="2 5"/>
+              <g stroke="url(#sla-spectrum)" stroke-width="3.4" stroke-linecap="round"><path d="M14 77v4m8-6v8m8-12v16m8-22v28m8-20v12m8-30v48m8-77v106m8-93v80m8-119v158m8-117v76m8-63v50m8-38v26m8-20v14m8-11v8m8-16v24m8-41v58m8-69v80m8-56v32m8-31v30m8-45v60m8-93v126m8-108v90m8-110v130m8-91v52m8-42v32m8-24v16m8-12v8m8-16v24m8-37v50m8-64v78m8-90v102m8-79v56m8-43v30m8-27v24m8-30v36m8-27v18m8-16v14m8-11v8m8-7v6m8-5v4"/></g>
+            </svg>
+          </header>
+          <div id="sla-workspace"></div>
+          <nav class="memory-related" aria-label="跨页知识联动"><h2>关联页卡</h2>
+            <a href="#memory-p1"><b>P1</b><span><strong>DOSE 奖赏信使与高认知摩擦</strong><small>怎样把追逐打卡奖励改成主动提取？</small></span><i data-icon="chevron-right"></i></a>
+            <a href="#memory-p3"><b>P3</b><span><strong>大脑三层架构与神经养护边界</strong><small>睡眠巩固和熟练表达，分别涉及哪些回路？</small></span><i data-icon="chevron-right"></i></a>
+          </nav>
+        </section>
+        <section id="memory-p1-view" class="memory-space memory-leaf" hidden>
+          <a class="memory-back" href="#memory">← 记忆强化 / 知识图谱区</a>
+          <header class="memory-header"><p class="memory-kicker">P1 · 跨页回忆</p><h1>DOSE 奖赏信使与高认知摩擦</h1></header>
+          <details><summary>连续打卡之后，用什么检验自己记住了？</summary><p>收起选项，只看情境说出原句。隔一天换个情境再试，并记下漏掉的词。连签次数和点选速度都无法告诉你能否独立提取。</p><a href="https://pubmed.ncbi.nlm.nih.gov/18276894/" target="_blank" rel="noopener noreferrer">外语词汇提取实验 ↗</a></details>
+          <details><summary>怎样给无意识刷题增加一道阻力？</summary><p>关掉打卡提醒，把题库移出首屏，在桌面留下原声句的录音入口。把奖励放在尝试作答之后。这里观察的是行为，单次打卡无法推断多巴胺水平。</p></details>
+          <nav class="memory-leaf-links" aria-label="跨页学习"><a href="#sla">← 返回二语习得闭环</a><a href="#dose">打开 DOSE 决策器 →</a></nav>
+        </section>
+        <section id="memory-p3-view" class="memory-space memory-leaf" hidden>
+          <a class="memory-back" href="#memory">← 记忆强化 / 知识图谱区</a>
+          <header class="memory-header"><p class="memory-kicker">P3 · 跨页回忆</p><h1>大脑三层架构与神经养护边界</h1></header>
+          <details><summary>从背规则到脱口而出，怎样检验自动化？</summary><p>换一个对话任务，看能否边听边自然说出练过的句式。前额叶参与控制与选择，纹状体参与程序学习，小脑参与动作时序。“迁移”指熟练后对显性规则的依赖降低，多条回路仍然协作。</p></details>
+          <details><summary>隔夜记得更牢，可以推断海马体发生了什么吗？</summary><p>睡眠有助于新词整合，海马体参与新记忆形成。深睡与记忆巩固有关，但早上答对一题无法测出特定突触的长时程增强（LTP）。用隔天的新句测试保留情况。</p><a href="https://pubmed.ncbi.nlm.nih.gov/17362375/" target="_blank" rel="noopener noreferrer">睡眠与新词整合实验 ↗</a></details>
+          <nav class="memory-leaf-links" aria-label="跨页学习"><a href="#sla">← 返回二语习得闭环</a><a href="#brain">打开交互脑图 →</a></nav>
         </section>
         <section id="dose-view" hidden>
           <header class="dose-header">

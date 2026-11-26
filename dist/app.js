@@ -199,7 +199,7 @@
   function toggleMenu(open, returnFocus = false) {
     rail.classList.toggle("open", open); scrim.hidden = !open;
     id("menu").setAttribute("aria-expanded", String(open));
-    if (open) rail.querySelector('[aria-current="page"]').focus();
+    if (open) rail.querySelector('[aria-current]').focus();
     if (returnFocus) id("menu").focus();
   }
   id("menu").addEventListener("click", () => toggleMenu(true));
@@ -248,8 +248,44 @@
   });
   doseView?.addEventListener("dose-timer-change", updateDoseTimerMark);
   if (doseView) window.addEventListener("storage", () => { if (!doseView.hidden) updateDoseTimerMark(); });
+  const pageLabelInput = id("memory-page-label");
+  id("sla-shortcuts")?.addEventListener("click", event => {
+    const button = event.target.closest("button[data-jump]");
+    if (!button) return;
+    const heading = id(button.dataset.jump);
+    heading.tabIndex = -1;
+    heading.focus({preventScroll:true});
+    heading.scrollIntoView({block:"start"});
+  });
+  if (pageLabelInput) {
+    const key = "toolbox.memory.sla.page";
+    const applyLabel = label => {
+      pageLabelInput.value = label || pageLabelInput.defaultValue;
+      document.querySelectorAll("[data-sla-page]").forEach(badge => { badge.textContent = pageLabelInput.value; });
+    };
+    let saved;
+    try { saved = localStorage.getItem(key); } catch { /* A private browser may disable storage. */ }
+    applyLabel(saved);
+    pageLabelInput.addEventListener("input", () => pageLabelInput.setCustomValidity(""));
+    id("memory-page-form").addEventListener("submit", event => {
+      event.preventDefault();
+      const label = pageLabelInput.value.trim();
+      if (!label || /^(P1|P3)$/i.test(label)) {
+        pageLabelInput.setCustomValidity(label ? "这个页码已有卡片，请换一个。" : "请输入页码。");
+        pageLabelInput.reportValidity();
+        return;
+      }
+      applyLabel(label);
+      const status = id("memory-page-status");
+      try { localStorage.setItem(key, label); status.textContent = "页码已保存到此浏览器"; }
+      catch { status.textContent = "页码已更新，本次访问有效"; }
+    });
+    window.addEventListener("storage", event => {
+      if (event.key === key || event.key === null) applyLabel(event.newValue);
+    });
+  }
   function route(moveFocus = false) {
-    const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", brain:"大脑功能与状态", dose:"DOSE 奖赏状态", guide:"凯利公式手册" };
+    const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", brain:"大脑功能与状态", dose:"DOSE 奖赏状态", guide:"凯利公式手册", memory:"记忆强化 / 知识图谱区", sla:"极致高效二语习得闭环", "memory-p1":"P1 · DOSE 奖赏信使", "memory-p3":"P3 · 大脑架构" };
     const url = new URL(location.href);
     const requested = url.hash.slice(1) || url.searchParams.get("tool");
     const known = Object.prototype.hasOwnProperty.call(pages, requested);
@@ -261,7 +297,9 @@
       return;
     }
     const name = view ? requested : "tools";
-    document.body.classList.toggle("brain-active", name === "brain" || name === "dose");
+    const inMemory = name === "sla" || name.startsWith("memory");
+    document.body.classList.toggle("brain-active", name === "brain" || name === "dose" || inMemory);
+    document.body.classList.toggle("memory-active", inMemory);
     document.body.classList.toggle("dose-active", name === "dose");
     Object.keys(pages).forEach(key => {
       const panel = id(key + "-view");
@@ -269,6 +307,7 @@
       const link = document.querySelector('.nav-link[href="#' + key + '"]');
       if (!link) return;
       if (key === name) link.setAttribute("aria-current", "page");
+      else if (key === "memory" && inMemory) link.setAttribute("aria-current", "location");
       else link.removeAttribute("aria-current");
     });
     id("current-page").textContent = pages[name];
@@ -279,6 +318,9 @@
     if (moveFocus) { window.scrollTo(0,0); id("content").focus({preventScroll:true}); }
     if (name === "calculator") { renderCalculations(); drawSurface(); }
     if (name === "stress") StressTest.open();
+    if (name === "sla") window.SLA.open();
+    else window.SLA?.close();
+    if (name.startsWith("memory-")) view.querySelectorAll("details[open]").forEach(detail => { detail.open = false; });
     if (name === "brain") {
       document.title = "大脑功能架构与状态诊断器 · 个人工具箱";
       BrainTool.open();
