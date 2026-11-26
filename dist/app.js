@@ -1,6 +1,9 @@
 (() => {
   "use strict";
   const paths = {
+    orbit: '<ellipse cx="12" cy="12" rx="10" ry="4.7" transform="rotate(-27 12 12)"/><ellipse cx="12" cy="12" rx="4.5" ry="9.8" transform="rotate(-34 12 12)"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
+    shield: '<path d="M12 3 4 6v5c0 5 3.4 8.6 8 11 4.6-2.4 8-6 8-11V6Z"/><path d="m8.5 12 2.3 2.3 4.8-5"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
     brain: '<path d="M12 5.2a3 3 0 0 0-5.7-1A3.4 3.4 0 0 0 3.6 9a4.1 4.1 0 0 0-.1 7 3.5 3.5 0 0 0 3.4 4A2.8 2.8 0 0 0 12 18V5.2Zm0 0a3 3 0 0 1 5.7-1A3.4 3.4 0 0 1 20.4 9a4.1 4.1 0 0 1 .1 7 3.5 3.5 0 0 1-3.4 4A2.8 2.8 0 0 1 12 18"/><path d="M5.5 9.5c2 .2 3 1.3 3 3M7 17c.1-1.6 1.1-2.5 2.5-3M18.5 9.5c-2 .2-3 1.3-3 3M17 17c-.1-1.6-1.1-2.5-2.5-3"/>',
     path: '<circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 6H16a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h8.5"/>',
     grid: '<rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/>',
@@ -212,11 +215,44 @@
     }
   });
   mobile.addEventListener("change", () => toggleMenu(false));
+  const dosePanels = {state:window.DoseState, friction:window.DoseFriction, actions:window.DoseActions};
+  const mountedDosePanels = new Set();
+  let doseMode;
+  function updateDoseTimerMark() {
+    id("dose-timer-mark").hidden = !window.DoseActions.hasActive();
+  }
+  function openDoseMode(mode, moveFocus = false) {
+    if (!Object.hasOwn(dosePanels,mode)) return;
+    doseMode = mode;
+    for (const button of id("dose-modes").querySelectorAll("button")) {
+      const active = button.dataset.doseMode === mode;
+      button.setAttribute("aria-pressed", String(active));
+      id("dose-" + button.dataset.doseMode + "-panel").hidden = !active;
+      if (active && moveFocus) button.focus();
+    }
+    if (!mountedDosePanels.has(mode)) {
+      dosePanels[mode].mount(id("dose-" + mode + "-panel"));
+      mountedDosePanels.add(mode);
+    }
+    updateDoseTimerMark();
+  }
+  id("dose-modes").addEventListener("click", event => {
+    const button = event.target.closest("[data-dose-mode]");
+    if (button) openDoseMode(button.dataset.doseMode);
+  });
+  id("dose-view").addEventListener("dose-mode", event => {
+    const {mode,goal} = event.detail;
+    openDoseMode(mode, true);
+    if (mode === "actions" && goal) id("dose-actions-panel").dispatchEvent(new CustomEvent("dose-goal", {detail:goal}));
+  });
+  id("dose-view").addEventListener("dose-timer-change", updateDoseTimerMark);
+  window.addEventListener("storage", () => { if (!id("dose-view").hidden) updateDoseTimerMark(); });
   function route(moveFocus = false) {
-    const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", brain:"大脑功能与状态", guide:"凯利公式手册" };
+    const pages = { calculator:"期望值与凯利公式", tools:"全部工具", stress:"定投压力测试", brain:"大脑功能与状态", dose:"DOSE 奖赏状态", guide:"凯利公式手册" };
     const hash = location.hash.slice(1);
     const name = Object.hasOwn(pages, hash) ? hash : "tools";
-    document.body.classList.toggle("brain-active", name === "brain");
+    document.body.classList.toggle("brain-active", name === "brain" || name === "dose");
+    document.body.classList.toggle("dose-active", name === "dose");
     Object.keys(pages).forEach(key => {
       id(key + "-view").hidden = key !== name;
       const link = document.querySelector('.nav-link[href="#' + key + '"]');
@@ -235,6 +271,10 @@
       document.title = "大脑功能架构与状态诊断器 · 个人工具箱";
       BrainTool.open();
     } else if (window.BrainTool) BrainTool.close();
+    if (name === "dose") {
+      document.title = "DOSE 奖赏状态诊断与反成瘾决策器 · 个人工具箱";
+      openDoseMode(doseMode || (window.DoseActions.hasActive() ? "actions" : "state"));
+    }
   }
   window.addEventListener("hashchange", () => route(true));
   document.querySelector(".skip").addEventListener("click", event => {

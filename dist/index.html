@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f7fb">
-  <meta name="description" content="个人工具箱，包含期望值与凯利公式、定投压力测试，以及交互式大脑图谱、状态排查与场景沙盘。">
+  <meta name="description" content="个人工具箱，包含期望值与凯利公式、定投压力测试、大脑功能图谱，以及 DOSE 奖赏状态与行动工具。">
   <title>个人工具箱</title>
   <link rel="icon" href="mark.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="brain.css">
+  <link rel="stylesheet" href="dose.css">
   <script defer src="math.js"></script>
   <script defer src="chart.js"></script>
   <script defer src="stress-math.js"></script>
@@ -17,6 +18,9 @@
   <script defer src="brain-data.js"></script>
   <script defer src="brain-map.js"></script>
   <script defer src="brain.js"></script>
+  <script defer src="dose-state.js"></script>
+  <script defer src="dose-friction.js"></script>
+  <script defer src="dose-actions.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -30,6 +34,7 @@
           <a class="nav-link" href="#calculator"><i data-icon="panel"></i>期望值与凯利公式</a>
           <a class="nav-link" href="#stress"><i data-icon="wallet"></i>定投压力测试</a>
           <a class="nav-link" href="#brain"><i data-icon="brain"></i>大脑功能与状态</a>
+          <a class="nav-link" href="#dose"><i data-icon="orbit"></i>DOSE 奖赏状态</a>
         </div>
         <div class="nav-group"><p>知识库</p>
           <a class="nav-link" href="#guide"><i data-icon="book"></i>凯利公式手册</a>
@@ -89,7 +94,36 @@
           <a class="catalog-card" href="#calculator"><div class="catalog-art"><i data-icon="activity"></i><span>EV</span><span>f*</span></div><div class="catalog-copy"><small>决策分析</small><h2>期望值与凯利公式</h2><p>计算平均净收益、投入比例和金额，探索仓位与长期增长的关系。</p><strong>打开工作台</strong></div></a>
           <a class="catalog-card" href="#stress"><div class="catalog-art cash-art" aria-hidden="true"><div class="cash-contours"></div><i data-icon="wallet"></i></div><div class="catalog-copy"><small>现金流规划</small><h2>定投压力测试</h2><p>同时模拟基金下跌与停薪，对比继续、暂停定投时现金能撑多久。</p><strong>打开压力测试</strong></div></a>
           <a class="catalog-card" href="#brain"><div class="catalog-art brain-art" aria-hidden="true"><i data-icon="brain"></i></div><div class="catalog-copy"><small>认知科学</small><h2>大脑功能架构与状态诊断器</h2><p>点选脑区、排查日常状态，观察加入一次停顿后，场景中的选择如何改变。</p><strong>打开交互脑图</strong></div></a>
+          <a class="catalog-card" href="#dose"><div class="catalog-art dose-art" aria-hidden="true"><i data-icon="orbit"></i><span>DOSE</span></div><div class="catalog-copy"><small>行为决策</small><h2>DOSE 奖赏状态诊断与反成瘾决策器</h2><p>对照渴望与满足，给冲动加一道阻力，选一个替代行动开始计时。</p><strong>打开决策器</strong></div></a>
           </div>
+        </section>
+        <section id="dose-view" hidden>
+          <header class="dose-header">
+            <div><p lang="en">DOSE Reward State &amp; Anti-Addiction Simulator</p><h1><span>DOSE 奖赏状态诊断</span><span>与反成瘾决策器</span></h1><p>比较继续的冲动与实际满足，决定下一步。</p></div>
+            <svg class="dose-orbits" viewBox="0 0 300 150" fill="none" aria-hidden="true">
+              <g transform="translate(158 75) rotate(-22)"><ellipse rx="125" ry="34"/><ellipse rx="106" ry="29"/><ellipse rx="85" ry="23"/><circle cx="-103" cy="-19" r="4" fill="#efb187"/><circle cx="65" cy="20" r="4" fill="#87ded1"/></g>
+              <g transform="translate(158 75) rotate(35)"><ellipse rx="89" ry="22"/><circle cx="85" cy="6" r="3" fill="#c1aeec"/></g>
+            </svg>
+          </header>
+          <nav id="dose-modes" class="dose-modes" aria-label="DOSE 工作模式">
+            <button type="button" data-dose-mode="state" aria-controls="dose-state-panel" aria-pressed="true"><i data-icon="activity"></i>状态反查</button>
+            <button type="button" data-dose-mode="friction" aria-controls="dose-friction-panel" aria-pressed="false"><i data-icon="shield"></i>借口拦截</button>
+            <button type="button" data-dose-mode="actions" aria-controls="dose-actions-panel" aria-pressed="false"><i data-icon="clock"></i>替代行动<small id="dose-timer-mark" hidden>有计时</small></button>
+          </nav>
+          <section id="dose-state-panel" aria-label="奖赏回路状态反查"></section>
+          <section id="dose-friction-panel" aria-label="冲动借口与环境阻力" hidden></section>
+          <section id="dose-actions-panel" aria-label="替代行动与打卡计时" hidden></section>
+          <details class="dose-evidence"><summary>DOSE 四种信使与自评边界</summary>
+            <p>同一活动可以同时涉及多种系统。记录想做的程度、实际体验和行动结果，比猜测某种递质缺了多少更容易核对。</p>
+            <dl>
+              <div><dt>D · 多巴胺</dt><dd>参与线索驱动的趋近与奖赏学习。看到图标又想点开，是可以观察的线索反应。</dd></div>
+              <div><dt>O · 催产素</dt><dd>参与社会互动，具体作用与情境有关。联系熟人后，可以观察自己是否更有连接感。</dd></div>
+              <div><dt>S · 血清素</dt><dd>参与情绪、睡眠等多种调节过程。某一刻的烦躁或平静无法标定血清素水平。</dd></div>
+              <div><dt>E · 内啡肽</dt><dd>属于内源性阿片肽，参与疼痛和奖赏调节。完成一项任务后的满足感无法确定是哪种信使产生了变化。</dd></div>
+            </dl>
+            <p>自评分和计时打卡没有检测 D2 受体、内啡肽或皮质醇的能力。若失控行为反复影响睡眠、工作或财务，可以把具体经历带给专业人员讨论。</p>
+            <div class="dose-source-links"><a href="https://pubmed.ncbi.nlm.nih.gov/9858756/" target="_blank" rel="noopener noreferrer">Wanting 与 Liking 研究</a><a href="https://pubmed.ncbi.nlm.nih.gov/26817725/" target="_blank" rel="noopener noreferrer">情境自控策略</a><a href="https://www.edge.org/response-detail/25436" target="_blank" rel="noopener noreferrer">G.I. Joe 谬误</a><a href="https://pubmed.ncbi.nlm.nih.gov/2270237/" target="_blank" rel="noopener noreferrer">动机性推理</a></div>
+          </details>
         </section>
         <section id="brain-view" hidden>
           <header class="brain-heading"><p lang="en">Cognitive Architecture &amp; Brain State Simulator</p><h1>大脑功能架构与状态诊断器</h1><p>从一个脑区、一种日常感受，或一个具体场景开始探索。</p></header>
